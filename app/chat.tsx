@@ -56,17 +56,24 @@ export default function ChatScreen() {
     loadHRUser();
   }, [user]);
 
-useEffect(() => {
-  if (!conversationId || !user) return;
+  useEffect(() => {
+    if (!conversationId || !user) return;
 
-  const unsubscribe = subscribeToMessages(
-    conversationId,
-    (msgs) => setMessages(msgs)
-  );
+    const unsubscribe = subscribeToMessages(conversationId, (msgs) =>
+      setMessages(msgs)
+    );
 
-  return () => unsubscribe();
-}, [conversationId, user]);
+    return () => unsubscribe();
+  }, [conversationId, user]);
 
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Delay to ensure layout is updated before scroll
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!messageText.trim() || !user || !hrUser || sending || !conversationId) {
@@ -195,9 +202,6 @@ useEffect(() => {
           ]}
           ListEmptyComponent={renderEmptyState}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            flatListRef.current?.scrollToEnd({ animated: false })
-          }
         />
 
         <View style={styles.inputContainer}>
