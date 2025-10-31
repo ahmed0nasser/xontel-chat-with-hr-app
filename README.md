@@ -4,6 +4,8 @@
 
 The "Chat with HR App" is a mobile and web application built with Expo and React Native, designed to facilitate seamless communication between employees and their HR department. The application provides a secure and intuitive platform for employees to chat with HR, view their profile information, and receive timely updates. It leverages Firebase for backend services, including authentication and real-time messaging, ensuring a robust and scalable solution.
 
+## [Demo](https://drive.google.com/file/d/1QJHbrrfLNqp7LsSF6XQUDmLZ_Qavzk1W/view?usp=sharing)
+
 ## Features
 
 - **User Authentication**: Secure login and logout functionality using Firebase Authentication. User credentials are securely stored for auto-login.
