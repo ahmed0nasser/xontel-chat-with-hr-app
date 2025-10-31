@@ -12,12 +12,13 @@ function RootLayoutNav() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === "(tabs)";
+    const inAuthGroup = segments[0] === '(tabs)';
+    const inLoginPage = segments[0] === 'login';
 
     if (!user && inAuthGroup) {
-      router.replace("/login");
-    } else if (user && !inAuthGroup) {
-      router.replace("/chat");
+      router.replace('/login');
+    } else if (user && inLoginPage) {
+      router.replace('/(tabs)');
     }
   }, [user, loading, segments, router]);
 
