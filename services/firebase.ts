@@ -12,7 +12,7 @@ import {
   limit,
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { User, Message } from '@/types';
+import { User, Message, Conversation } from '@/types';
 
 export const getUserById = async (userId: string): Promise<User> => {
   const userDoc = await getDoc(doc(db, 'employees', userId));
@@ -88,6 +88,7 @@ export const subscribeToMessages = (
 
 export const sendMessage = async (
   conversationId: string,
+  senderId: string,
   text: string
 ): Promise<void> => {
   const conversationRef = doc(db, 'conversations', conversationId);
@@ -105,7 +106,7 @@ export const sendMessage = async (
   );
 
   batch.set(doc(messagesRef), {
-    senderId: conversationId,
+    senderId,
     text,
     timestamp: Timestamp.now(),
     isRead: false,
@@ -164,4 +165,23 @@ export const subscribeToUnreadCount = (
   });
 
   return () => {};
+};
+
+export const subscribeToConversation = (
+  conversationId: string, onConversationUpdate: (conversation: Conversation) => void
+): (() => void) => {
+  const conversationRef = collection(db, 'conversations', conversationId);
+  const q = query(conversationRef);
+
+  return onSnapshot(q, (querySnapshot) => {
+    const data = querySnapshot.docs[0].data();
+    const conversation: Conversation = {
+        id: querySnapshot.docs[0].id,
+        participantNames: data.participantNames,
+        lastMessage: data.lastMessage,
+        lastMessageTimestamp: data.lastMessageTimestamp.toDate(),
+        messages: [], // Messages subcollection is not loaded here
+      };
+    onConversationUpdate(conversation);
+  });
 };
