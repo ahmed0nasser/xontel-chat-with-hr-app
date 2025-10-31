@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   View,
+  Image,
   Text,
   TextInput,
   TouchableOpacity,
@@ -82,8 +83,10 @@ export default function LoginScreen() {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue</Text>
+            <Image
+              style={styles.logo}
+              source={require("@/assets/xontel-logo.png")}
+            />
           </View>
 
           <View style={styles.form}>
@@ -190,7 +193,14 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xl,
   },
   header: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: theme.spacing.xxl,
+  },
+  logo: {
+    height: 90,
+    resizeMode: "contain",
   },
   title: {
     ...theme.typography.h1,
