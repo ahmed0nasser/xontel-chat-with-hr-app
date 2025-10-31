@@ -107,6 +107,7 @@ export const sendMessage = async (
     {
       lastMessage: text,
       lastMessageTimestamp: Timestamp.now(),
+      lastMessageSenderId: senderId,
     },
     { merge: true }
   );
@@ -159,6 +160,7 @@ export const subscribeToConversation = (
         participantNames: data.participantNames,
         lastMessage: data.lastMessage,
         lastMessageTimestamp: data.lastMessageTimestamp.toDate(),
+        lastMessageSenderId: data.lastMessageSenderId,
         messages: [],
       };
       onConversationUpdate(conversation);

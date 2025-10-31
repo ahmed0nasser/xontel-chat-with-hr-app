@@ -24,6 +24,7 @@ import { formatRelativeTime, truncateText } from "@/utils/formatters";
 interface MessageBrief {
   text: string;
   timestamp: Date;
+  lastMessageSenderFirstName: string;
 }
 
 export default function HomeScreen() {
@@ -40,16 +41,20 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!user) return;
-    const unsubscribe = subscribeToConversation(user.id, (conversation) =>
+    const unsubscribe = subscribeToConversation(user.id, async (conv) => {
       setLastMessage({
-        text: conversation.lastMessage,
-        timestamp: conversation.lastMessageTimestamp,
-      })
-    );
+        text: conv.lastMessage,
+        timestamp: conv.lastMessageTimestamp,
+        lastMessageSenderFirstName:
+          conv.lastMessageSenderId === user.id
+            ? "You"
+            : (hrUser?.firstName as string),
+      });
+    });
     setLoading(false);
 
     return unsubscribe;
-  }, [user]);
+  }, [user, hrUser]);
 
   useEffect(() => {
     if (!user || !hrUser) return;
@@ -153,6 +158,7 @@ export default function HomeScreen() {
                         ]}
                         numberOfLines={1}
                       >
+                        {lastMessage.lastMessageSenderFirstName + ": "}
                         {truncateText(lastMessage.text, 60)}
                       </Text>
                     </View>

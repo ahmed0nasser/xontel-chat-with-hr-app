@@ -23,5 +23,6 @@ export interface Conversation {
   participantNames: [string, string];
   lastMessage: string;
   lastMessageTimestamp: Date;
+  lastMessageSenderId: string;
   messages: Message[];
 }
