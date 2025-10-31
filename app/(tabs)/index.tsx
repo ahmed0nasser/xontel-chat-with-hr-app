@@ -54,8 +54,11 @@ export default function HomeScreen() {
   useEffect(() => {
     if (!user || !hrUser) return;
 
-    const unsubscribe = subscribeToUnreadCount(user.id, (count) => {
+    let unsubscribe;
+    subscribeToUnreadCount(user.id, (count) => {
       setUnreadCount(count);
+    }).then((unsub) => {
+      unsubscribe = unsub;
     });
 
     return unsubscribe;
