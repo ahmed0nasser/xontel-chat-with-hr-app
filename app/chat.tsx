@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -7,18 +7,23 @@ import {
   TouchableOpacity,
   FlatList,
   KeyboardAvoidingView,
-  Platform,
   Image,
   ActivityIndicator,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { ArrowLeft, Send } from 'lucide-react-native';
-import { useAuth } from '@/contexts/AuthContext';
-import { getHRUser, subscribeToMessages, sendMessage, markMessagesAsRead } from '@/services/firebase';
-import { User, Message } from '@/types';
-import { theme } from '@/utils/theme';
-import { formatMessageTime } from '@/utils/formatters';
+  Platform,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { ArrowLeft, Send } from "lucide-react-native";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getHRUser,
+  subscribeToMessages,
+  sendMessage,
+} from "@/services/firebase";
+import { User, Message } from "@/types";
+import { theme } from "@/utils/theme";
+import { formatDateBadge, formatMessageTime } from "@/utils/formatters";
+import DateBadge from "@/components/DateBadge";
 
 export default function ChatScreen() {
   const { user } = useAuth();
@@ -27,7 +32,7 @@ export default function ChatScreen() {
 
   const [hrUser, setHrUser] = useState<User | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [messageText, setMessageText] = useState('');
+  const [messageText, setMessageText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -42,7 +47,7 @@ export default function ChatScreen() {
         setHrUser(hr);
         setConversationId(user.id);
       } catch (error) {
-        console.error('Error loading HR user:', error);
+        console.error("Error loading HR user:", error);
       } finally {
         setLoading(false);
       }
@@ -51,20 +56,17 @@ export default function ChatScreen() {
     loadHRUser();
   }, [user]);
 
-  useEffect(() => {
-    if (!conversationId) return;
+useEffect(() => {
+  if (!conversationId || !user) return;
 
-    const unsubscribe = subscribeToMessages(conversationId, (newMessages) => {
-      setMessages(newMessages);
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    });
+  const unsubscribe = subscribeToMessages(
+    conversationId,
+    (msgs) => setMessages(msgs)
+  );
 
-    markMessagesAsRead(conversationId);
+  return () => unsubscribe();
+}, [conversationId, user]);
 
-    return unsubscribe;
-  }, [conversationId, user]);
 
   const handleSend = async () => {
     if (!messageText.trim() || !user || !hrUser || sending || !conversationId) {
@@ -72,56 +74,65 @@ export default function ChatScreen() {
     }
 
     const content = messageText.trim();
-    setMessageText('');
+    setMessageText("");
     setSending(true);
 
     try {
-      await sendMessage(
-        conversationId,
-        content
-      );
+      await sendMessage(conversationId, user.id, content);
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error("Error sending message:", error);
       setMessageText(content);
     } finally {
       setSending(false);
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => {
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isSent = item.senderId === user?.id;
 
+    const showDateBadge =
+      index === 0 ||
+      new Date(messages[index - 1].timestamp).toDateString() !==
+        new Date(item.timestamp).toDateString();
+
     return (
-      <View
-        style={[
-          styles.messageContainer,
-          isSent ? styles.sentMessageContainer : styles.receivedMessageContainer,
-        ]}
-      >
+      <>
+        {showDateBadge && (
+          <DateBadge date={formatDateBadge(new Date(item.timestamp))} />
+        )}
         <View
           style={[
-            styles.messageBubble,
-            isSent ? styles.sentBubble : styles.receivedBubble,
+            styles.messageContainer,
+            isSent
+              ? styles.sentMessageContainer
+              : styles.receivedMessageContainer,
           ]}
         >
-          <Text
+          <View
             style={[
-              styles.messageText,
-              isSent ? styles.sentMessageText : styles.receivedMessageText,
+              styles.messageBubble,
+              isSent ? styles.sentBubble : styles.receivedBubble,
             ]}
           >
-            {item.text}
-          </Text>
-          <Text
-            style={[
-              styles.messageTime,
-              isSent ? styles.sentMessageTime : styles.receivedMessageTime,
-            ]}
-          >
-            {formatMessageTime(item.timestamp)}
-          </Text>
+            <Text
+              style={[
+                styles.messageText,
+                isSent ? styles.sentMessageText : styles.receivedMessageText,
+              ]}
+            >
+              {item.text}
+            </Text>
+            <Text
+              style={[
+                styles.messageTime,
+                isSent ? styles.sentMessageTime : styles.receivedMessageTime,
+              ]}
+            >
+              {formatMessageTime(new Date(item.timestamp))}
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   };
 
@@ -145,16 +156,16 @@ export default function ChatScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={10}
       >
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.replace('/(tabs)')}
+            onPress={() => router.replace("/(tabs)")}
           >
             <ArrowLeft size={24} color={theme.colors.text} />
           </TouchableOpacity>
@@ -230,12 +241,12 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderBottomWidth: 1,
@@ -247,8 +258,8 @@ const styles = StyleSheet.create({
   },
   headerInfo: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.md,
   },
   headerAvatar: {
@@ -262,7 +273,7 @@ const styles = StyleSheet.create({
   },
   headerName: {
     ...theme.typography.body,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text,
   },
   headerTitle: {
@@ -275,38 +286,38 @@ const styles = StyleSheet.create({
   },
   messagesListEmpty: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: theme.spacing.xl,
   },
   emptyStateText: {
     ...theme.typography.body,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.textSecondary,
     marginBottom: theme.spacing.xs,
   },
   emptyStateSubtext: {
     ...theme.typography.bodySmall,
     color: theme.colors.textLight,
-    textAlign: 'center',
+    textAlign: "center",
   },
   messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     gap: theme.spacing.sm,
     marginBottom: theme.spacing.sm,
   },
   sentMessageContainer: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   receivedMessageContainer: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
-  
+
   messageBubble: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
   },
@@ -318,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.messageReceived,
     borderBottomLeftRadius: theme.borderRadius.xs,
   },
-  
+
   messageText: {
     ...theme.typography.body,
     lineHeight: 20,
@@ -335,14 +346,14 @@ const styles = StyleSheet.create({
   },
   sentMessageTime: {
     color: theme.colors.textSecondary,
-    textAlign: 'right',
+    textAlign: "right",
   },
   receivedMessageTime: {
     color: theme.colors.textSecondary,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.md,
     borderTopWidth: 1,
@@ -366,8 +377,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: theme.borderRadius.full,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     ...theme.shadows.sm,
   },
   sendButtonDisabled: {
