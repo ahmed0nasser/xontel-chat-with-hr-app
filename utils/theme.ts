@@ -1,6 +1,7 @@
 export const theme = {
   colors: {
-    primary: '#2563eb',
+    // primary: '#2563eb',
+    primary: '#0082CA',
     primaryDark: '#1e40af',
     secondary: '#64748b',
     background: '#f8fafc',
@@ -12,7 +13,8 @@ export const theme = {
     error: '#ef4444',
     success: '#10b981',
     messageReceived: '#f1f5f9',
-    messageSent: '#dbeafe',
+    // messageSent: '#dbeafe',
+    messageSent: '#cae0fcff',
     unreadBadge: '#ef4444',
   },
   spacing: {
