@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,47 +7,48 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { MessageCircle } from 'lucide-react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/contexts/AuthContext';
-import { getHRUser, subscribeToUnreadCount, subscribeToMessages } from '@/services/firebase';
-import { User, Message } from '@/types';
-import { theme } from '@/utils/theme';
-import { formatRelativeTime, truncateText } from '@/utils/formatters';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { MessageCircle } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getHRUser,
+  subscribeToUnreadCount,
+  subscribeToConversation,
+} from "@/services/firebase";
+import { User } from "@/types";
+import { theme } from "@/utils/theme";
+import { formatRelativeTime, truncateText } from "@/utils/formatters";
+
+interface MessageBrief {
+  text: string;
+  timestamp: Date;
+}
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [hrUser, setHrUser] = useState<User | null>(null);
-  const [lastMessage, setLastMessage] = useState<Message | null>(null);
+  const [lastMessage, setLastMessage] = useState<MessageBrief | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getHRUser().then((hrUser) => setHrUser(hrUser));
+  }, [setHrUser]);
 
   useEffect(() => {
     if (!user) return;
+    const unsubscribe = subscribeToConversation(user.id, (conversation) =>
+      setLastMessage({
+        text: conversation.lastMessage,
+        timestamp: conversation.lastMessageTimestamp,
+      })
+    );
+    setLoading(false);
 
-    const loadData = async () => {
-      try {
-        const hr = await getHRUser();
-        setHrUser(hr);
-
-        const unsubscribe = subscribeToMessages(user.id, (messages) => {
-          if (messages.length > 0) {
-            setLastMessage(messages[messages.length - 1]);
-          }
-        });
-
-        return unsubscribe;
-      } catch (error) {
-        console.error('Error loading home data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+    return unsubscribe;
   }, [user]);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export default function HomeScreen() {
 
   const handleChatPress = () => {
     if (hrUser) {
-      router.push('/chat');
+      router.push("/chat");
     }
   };
 
@@ -78,7 +79,10 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <View style={styles.userInfo}>
             <Image
@@ -186,8 +190,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     backgroundColor: theme.colors.surface,
@@ -196,8 +200,8 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border,
   },
   userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.md,
   },
   userAvatar: {
@@ -252,8 +256,8 @@ const styles = StyleSheet.create({
     ...theme.shadows.md,
   },
   chatCardContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: theme.spacing.md,
   },
   hrAvatar: {
@@ -266,14 +270,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: theme.spacing.xs,
   },
   hrName: {
     ...theme.typography.body,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text,
   },
   hrTitle: {
@@ -286,8 +290,8 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   messagePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: theme.spacing.xs,
   },
   messageIcon: {
@@ -299,38 +303,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   lastMessageUnread: {
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text,
   },
   noMessages: {
     ...theme.typography.bodySmall,
     color: theme.colors.textLight,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
   unreadBadge: {
     backgroundColor: theme.colors.unreadBadge,
     borderRadius: theme.borderRadius.full,
     minWidth: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.xs,
   },
   unreadText: {
     ...theme.typography.caption,
-    color: '#fff',
-    fontWeight: '700',
+    color: "#fff",
+    fontWeight: "700",
   },
   errorCard: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: "#fef2f2",
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: "#fecaca",
   },
   errorText: {
     ...theme.typography.body,
     color: theme.colors.error,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
