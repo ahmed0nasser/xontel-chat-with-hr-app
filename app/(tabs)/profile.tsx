@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,28 +7,34 @@ import {
   Image,
   ScrollView,
   Alert,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LogOut, User as UserIcon, Briefcase, Calendar, AtSign } from 'lucide-react-native';
-import { useAuth } from '@/contexts/AuthContext';
-import { theme } from '@/utils/theme';
-import { formatJoinedDate } from '@/utils/formatters';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  LogOut,
+  User as UserIcon,
+  Briefcase,
+  Calendar,
+  AtSign,
+} from "lucide-react-native";
+import { useAuth } from "@/contexts/AuthContext";
+import { theme } from "@/utils/theme";
+import { formatJoinedDate } from "@/utils/formatters";
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth();
 
   const handleLogout = () => {
     Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
+      "Logout",
+      "Are you sure you want to logout?",
       [
         {
-          text: 'Cancel',
-          style: 'cancel',
+          text: "Cancel",
+          style: "cancel",
         },
         {
-          text: 'Logout',
-          style: 'destructive',
+          text: "Logout",
+          style: "destructive",
           onPress: signOut,
         },
       ],
@@ -48,11 +54,10 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Profile</Text>
-        </View>
-
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
@@ -156,14 +161,14 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: theme.spacing.lg,
   },
   errorText: {
     ...theme.typography.body,
     color: theme.colors.error,
-    textAlign: 'center',
+    textAlign: "center",
   },
   header: {
     backgroundColor: theme.colors.surface,
@@ -178,18 +183,18 @@ const styles = StyleSheet.create({
   profileSection: {
     backgroundColor: theme.colors.surface,
     padding: theme.spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: theme.spacing.md,
     marginHorizontal: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
     ...theme.shadows.md,
   },
   avatarContainer: {
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.xs,
   },
   avatar: {
-    width: 120,
-    height: 120,
+    width: 100,
+    height: 100,
     borderRadius: theme.borderRadius.full,
     backgroundColor: theme.colors.border,
     borderWidth: 4,
@@ -206,7 +211,7 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     padding: theme.spacing.md,
-    marginTop: theme.spacing.lg,
+    marginTop: theme.spacing.sm,
   },
   infoCard: {
     backgroundColor: theme.colors.surface,
@@ -215,8 +220,8 @@ const styles = StyleSheet.create({
     ...theme.shadows.sm,
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: theme.spacing.md,
     gap: theme.spacing.md,
   },
@@ -224,9 +229,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: theme.borderRadius.md,
-    backgroundColor: '#eff6ff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#eff6ff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   infoContent: {
     flex: 1,
@@ -238,7 +243,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     ...theme.typography.body,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.text,
   },
   divider: {
@@ -248,14 +253,14 @@ const styles = StyleSheet.create({
   },
   actionSection: {
     padding: theme.spacing.md,
-    marginTop: theme.spacing.lg,
-    marginBottom: theme.spacing.xxl,
+    marginTop: theme.spacing.xs,
+    marginBottom: theme.spacing.lg,
   },
   logoutButton: {
     backgroundColor: theme.colors.error,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: theme.spacing.sm,
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.lg,
@@ -263,7 +268,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     ...theme.typography.body,
-    fontWeight: '600',
-    color: '#fff',
+    fontWeight: "600",
+    color: "#fff",
   },
 });
