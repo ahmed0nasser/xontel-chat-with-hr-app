@@ -17,3 +17,11 @@ export interface Message {
   isRead: boolean;
   timestamp: Date;
 }
+
+export interface Conversation {
+  id:string;
+  participantNames: [string, string];
+  lastMessage: string;
+  lastMessageTimestamp: Date;
+  messages: Message[];
+}
