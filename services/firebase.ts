@@ -60,7 +60,8 @@ export const getHRUser = async (): Promise<User> => {
 
 export const subscribeToMessages = (
   conversationId: string,
-  onMessagesUpdate: (messages: Message[]) => void
+  onMessagesUpdate: (messages: Message[]) => void,
+  options: { markAsRead: boolean; userId?: string } = { markAsRead: false }
 ): (() => void) => {
   const messagesRef = collection(
     db,
@@ -70,18 +71,39 @@ export const subscribeToMessages = (
   );
   const q = query(messagesRef, orderBy('timestamp', 'asc'));
 
-  return onSnapshot(q, (querySnapshot) => {
+  return onSnapshot(q, async (querySnapshot) => {
     const messages: Message[] = [];
+    const batch = writeBatch(db);
+    let performUpdate = false;
+
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      let messageIsRead = data.isRead;
+
+      if (
+        options.markAsRead &&
+        options.userId &&
+        data.senderId !== options.userId &&
+        !data.isRead
+      ) {
+        batch.update(doc.ref, { isRead: true });
+        performUpdate = true;
+        messageIsRead = true; // Optimistic update for the UI
+      }
+
       messages.push({
         id: doc.id,
         senderId: data.senderId,
         text: data.text,
         timestamp: data.timestamp.toDate(),
-        isRead: data.isRead,
+        isRead: messageIsRead,
       });
     });
+
+    if (performUpdate) {
+      await batch.commit();
+    }
+
     onMessagesUpdate(messages);
   });
 };
@@ -115,32 +137,6 @@ export const sendMessage = async (
   await batch.commit();
 };
 
-export const markMessagesAsRead = async (
-  conversationId: string
-): Promise<void> => {
-  const messagesRef = collection(
-    db,
-    'conversations',
-    conversationId,
-    'messages'
-  );
-  const hrUser = await getHRUser();
-  const q = query(
-    messagesRef,
-    where('senderId', '==', hrUser.id),
-    where('isRead', '==', false)
-  );
-
-  const querySnapshot = await getDocs(q);
-  const batch = writeBatch(db);
-
-  querySnapshot.forEach((document) => {
-    batch.update(document.ref, { isRead: true });
-  });
-
-  await batch.commit();
-};
-
 export const subscribeToUnreadCount = (
   conversationId: string,
   onCountUpdate: (count: number) => void
@@ -168,20 +164,22 @@ export const subscribeToUnreadCount = (
 };
 
 export const subscribeToConversation = (
-  conversationId: string, onConversationUpdate: (conversation: Conversation) => void
+  conversationId: string,
+  onConversationUpdate: (conversation: Conversation) => void
 ): (() => void) => {
-  const conversationRef = collection(db, 'conversations', conversationId);
-  const q = query(conversationRef);
+  const conversationRef = doc(db, 'conversations', conversationId);
 
-  return onSnapshot(q, (querySnapshot) => {
-    const data = querySnapshot.docs[0].data();
-    const conversation: Conversation = {
-        id: querySnapshot.docs[0].id,
+  return onSnapshot(conversationRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const conversation: Conversation = {
+        id: docSnap.id,
         participantNames: data.participantNames,
         lastMessage: data.lastMessage,
         lastMessageTimestamp: data.lastMessageTimestamp.toDate(),
         messages: [], // Messages subcollection is not loaded here
       };
-    onConversationUpdate(conversation);
+      onConversationUpdate(conversation);
+    }
   });
 };
