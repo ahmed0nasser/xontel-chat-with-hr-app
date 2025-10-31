@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!firebaseUser) {
       tryAutoLogin();
     }
-  }, []);
+  }, [firebaseUser]);
 
   const signIn = async (
     username: string,
