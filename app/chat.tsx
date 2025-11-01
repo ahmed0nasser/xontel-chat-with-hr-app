@@ -10,6 +10,7 @@ import {
   Image,
   ActivityIndicator,
   Platform,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -36,6 +37,18 @@ export default function ChatScreen() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
+      }
+    );
+    return () => {
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -201,7 +214,7 @@ export default function ChatScreen() {
             messages.length === 0 && styles.messagesListEmpty,
           ]}
           ListEmptyComponent={renderEmptyState}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
         />
 
         <View style={styles.inputContainer}>
